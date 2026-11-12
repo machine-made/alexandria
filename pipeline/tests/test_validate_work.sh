@@ -88,6 +88,30 @@ printf bad > "$LIB/papers/lovelace1843/lovelace1843.pdf"
 assert_validation_fails "$LIB" 'source copy sha256 mismatch'
 printf pdf > "$LIB/papers/lovelace1843/lovelace1843.pdf"
 
+# A recompressed source copy is valid when metadata records what is stored; the original sha stays.
+python3 - "$LIB/papers/lovelace1843" <<'PY'
+import hashlib, json, sys
+d = sys.argv[1]
+open(f"{d}/lovelace1843.pdf", "wb").write(b"p")
+meta = json.load(open(f"{d}/metadata.json"))
+row = meta["source_files"][0]
+row["stored_sha256"] = hashlib.sha256(b"p").hexdigest()
+row["stored_size"] = 1
+json.dump(meta, open(f"{d}/metadata.json", "w"))
+PY
+validate_library "$LIB"
+printf q > "$LIB/papers/lovelace1843/lovelace1843.pdf"
+assert_validation_fails "$LIB" 'source copy sha256 mismatch'
+python3 - "$LIB/papers/lovelace1843" <<'PY'
+import json, sys
+d = sys.argv[1]
+meta = json.load(open(f"{d}/metadata.json"))
+row = meta["source_files"][0]
+del row["stored_sha256"], row["stored_size"]
+json.dump(meta, open(f"{d}/metadata.json", "w"))
+PY
+printf pdf > "$LIB/papers/lovelace1843/lovelace1843.pdf"
+
 rm "$LIB/papers/lovelace1843/_page_0_Picture_3.jpeg"
 assert_validation_fails "$LIB" 'missing image artifact'
 

@@ -272,10 +272,12 @@ def validate_work_md(md_path: Path) -> list[str]:
             if not source_copy.is_file():
                 errors.append(f"{source_copy}: missing source copy")
                 continue
-            expected_size = row.get("size")
+            # sha256/size name the file as it arrived. A copy that was recompressed after filing
+            # records its own stored_sha256/stored_size; the original values stay as its identity.
+            expected_size = row.get("stored_size", row.get("size"))
             if isinstance(expected_size, int) and source_copy.stat().st_size != expected_size:
                 errors.append(f"{source_copy}: source copy size mismatch")
-            expected_sha = row.get("sha256")
+            expected_sha = row.get("stored_sha256") or row.get("sha256")
             if expected_sha and sha256_file(source_copy) != str(expected_sha):
                 errors.append(f"{source_copy}: source copy sha256 mismatch")
     return errors
