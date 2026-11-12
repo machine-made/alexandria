@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Identifier extraction shapes + reference-section guard (bead alexandria-ihs).
+# Identifier extraction shapes + reference-section guard.
 # Fully offline; exercises identifier_lines / extract_* / markdown_metadata_layer / infer_metadata.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -274,7 +274,7 @@ assert extract_doi(funder_prose) == ""
 funder_then_work = f"funded by the ANR (DOI: {FUNDER}). Work DOI: {OWN}"
 assert extract_doi(funder_then_work) == OWN
 
-# --- song2023 real AIP boilerplate: own DOI only mid-prose, no labeled line ---
+# --- park2023 real AIP boilerplate: own DOI only mid-prose, no labeled line ---
 song_shape = f"""# Global Instability of SWBLI
 
 This article may be downloaded for personal use only. Any other use requires prior permission of the author and AIP Publishing. This article may be downloaded for personal use only and may be found at https://doi.org/{SONG}.
@@ -287,7 +287,7 @@ Cite as: Phys. Fluids **35**, 084121 (2023); doi: {SONG} Submitted: 4 June 2023 
 Body.
 """
 assert markdown_metadata_layer(song_shape).get("doi") == SONG, markdown_metadata_layer(song_shape)
-meta_song = infer_metadata(song_shape, "song2023_shape", [])
+meta_song = infer_metadata(song_shape, "park2023_shape", [])
 assert meta_song["doi"] == SONG, meta_song
 assert meta_song["category"] == "papers", meta_song
 

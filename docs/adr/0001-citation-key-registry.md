@@ -1,11 +1,10 @@
 # ADR 0001 — Citation-key registry & immutability contract
 
 Status: Accepted (2026-06-27)
-Bead: alexandria-1aq · Impl: see `impl(feat): key registry & immutability contract`
 
 ## Context
 Citation keys (`<surname><year>`) are the stable handle every `.bib` entry and LaTeX
-`\cite{}` depends on. Two pre-existing defects (surfaced by the alexandria-znp audit, risk R1):
+`\cite{}` depends on. Two pre-existing defects (surfaced by an audit):
 1. `unique_key` reserved keys only within a single category directory, but
    `rebuild_root_bibliography` merges all categories into one `alexandria.bib` — so the
    same `surnameYYYY` filed under `papers/` and `misc/` produced a DUPLICATE BibTeX key
@@ -35,5 +34,4 @@ Introduce an append-only registry, `key_registry.json` at the library root, owni
 - Keys are reproducible and frozen once assigned → safe to cite mid-project.
 - No new dependency (stdlib only). Library is empty today, so no data migration was needed.
 - `key_registry.json` becomes a tracked part of each library's state.
-- Downstream beads build on this: xvm (validation gates), bro (BibTeX rendering),
-  m0w (quarantine promotion).
+- Downstream work builds on this: validation gates, BibTeX rendering, quarantine promotion.

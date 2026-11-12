@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from alexandria_library import default_library
 from alexandria_audit_bibtex import iter_bib_sidecars, root_bibliography_finding
 from alexandria_bibtex import bibtex_type
 from alexandria_key_registry import KeyRegistry
@@ -295,7 +296,7 @@ def iter_work_markdown(library_root: Path) -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--library", type=Path, default=Path("."))
+    parser.add_argument("--library", type=Path, default=default_library())
     parser.add_argument("--work-md", type=Path, action="append", default=[])
     args = parser.parse_args()
     work_paths = [path.resolve() for path in args.work_md] if args.work_md else iter_work_markdown(args.library.resolve())

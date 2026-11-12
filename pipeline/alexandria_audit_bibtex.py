@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from alexandria_library import default_library
 from alexandria_bibtex import bibtex_entry, bibtex_type, clean_value, rebuild_root_bibliography
 from alexandria_metadata_common import (
     NODATE_YEAR,
@@ -721,7 +722,7 @@ def print_summary(report: dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--library", type=Path, default=Path("."), help="Alexandria library root to audit")
+    parser.add_argument("--library", type=Path, default=default_library(), help="Alexandria library root to audit")
     parser.add_argument("--out-dir", type=Path, default=Path("pipeline/audit"), help="directory for JSON/TSV reports")
     args = parser.parse_args()
 

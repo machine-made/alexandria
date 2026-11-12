@@ -1,7 +1,6 @@
 # ADR 0007 — Audited key correction (amend_key): the sanctioned exception to key immutability
 
 Status: Accepted (2026-07-16)
-Bead: alexandria-qcn (Part B) · Impl: see `impl(...): alexandria-qcn Part B audited re-key`
 Extends: ADR 0001 (citation key registry)
 
 ## Context
@@ -11,7 +10,7 @@ changes; the registry enforces sha→key stability." `KeyRegistry.record_existin
 it in code — it RAISES `registry immutability violation` on any attempt to remap a SHA to a
 different key.
 
-But a derived key can be *wrong*. wang2029 was filed because year inference misread a
+But a derived key can be *wrong*. xu2029 was filed because year inference misread a
 data-table value (2029 J/kg/K specific heat) as the publication year; the true year is 2026
 (from the DOI). The source PDF — the work's identity — never changed; only a derived field
 was wrong. The immutability guard correctly blocks the fix, which means the library needs a
@@ -30,7 +29,7 @@ sanctioned path that remaps an established SHA→key binding. It:
 - refuses an unknown SHA, an empty new key/category, and an empty reason;
 - refuses a **target collision** (the new key already allocated to a different SHA);
 - keeps `first_filed_utc` stable — the work's history is not rewritten as if it were always
-  wang2026;
+  xu2026;
 - appends a **correction record** to the entry: `{from_key, to_key, from_category,
   to_category, reason, utc, fields, tool}`;
 - **tombstones the old key** (top-level `tombstones` list) so it can never be re-allocated;
@@ -55,8 +54,8 @@ backup (removing the new-key paths first), so a half-applied correction cannot p
   wrong; the SHA is right." Every future correction is the same operation, not another
   ad-hoc hand-edit — which matters most during bulk ingestion, when corrections cluster.
 - The search index is rebuilt as part of the correction, so derived consumers (the MCP
-  server) never serve the dead key. wang2029 → wang2026 is applied: search returns
-  `wang2026`, `\cite{wang2026}` resolves, SHA `853068a7…` intact, song2023 untouched.
+  server) never serve the dead key. xu2029 → xu2026 is applied: search returns
+  `xu2026`, `\cite{xu2026}` resolves, park2023 untouched.
 - Git is not the undo path (the filed data is untracked, the registry gitignored), so the
   driver's own backup/restore is the safety net.
 - Known hardening deferred (filed as a follow-up, none affect the applied result): amend_key

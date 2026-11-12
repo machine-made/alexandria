@@ -16,11 +16,18 @@ from another model are an error, never a silent mix.
 from __future__ import annotations
 
 import json
+import os
 import tomllib
 from pathlib import Path
 from typing import Any
 
 CONFIG_NAME = "scriptorium.toml"
+LIBRARY_ENV = "ALEXANDRIA_LIBRARY"
+
+
+def default_library() -> Path:
+    """Library root when --library is not given: $ALEXANDRIA_LIBRARY, else the current directory."""
+    return Path(os.environ.get(LIBRARY_ENV) or ".")
 
 
 def active_embedder(library_root: Path) -> tuple[str | None, dict[str, Any]]:

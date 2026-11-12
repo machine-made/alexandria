@@ -16,6 +16,7 @@ import tarfile
 from pathlib import Path
 from typing import Any
 
+from alexandria_library import default_library
 from alexandria_bibtex import bibtex_entry, rebuild_root_bibliography
 from alexandria_key_registry import KeyRegistry
 from alexandria_metadata_common import _apply_year_decision, load_json
@@ -119,7 +120,7 @@ def _move_work_artifacts(library_root: Path, category: str, old_key: str, new_ke
         raise RuntimeError(f"destination work dir already exists: {dst_dir}")
     src_dir.rename(dst_dir)
 
-    # Rename filed source copy inside the work dir (e.g. wang2029.pdf → wang2026.pdf)
+    # Rename filed source copy inside the work dir (e.g. xu2029.pdf → xu2026.pdf)
     for path in list(dst_dir.iterdir()):
         if path.is_file() and path.stem == old_key:
             new_path = path.with_name(f"{new_key}{path.suffix}")
@@ -283,7 +284,7 @@ def rekey_work(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--library", type=Path, default=Path("."), help="library root")
+    parser.add_argument("--library", type=Path, default=default_library(), help="library root")
     parser.add_argument("--sha", required=True, help="source_sha256 of the work")
     parser.add_argument("--old-key", required=True, help="current citation key")
     parser.add_argument("--new-key", required=True, help="corrected citation key")

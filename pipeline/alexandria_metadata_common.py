@@ -709,7 +709,7 @@ def extract_doi_from_identifier_lines(identifiers: str) -> str:
     When more than one distinct DOI appears, a **line-initial labeled** form
     (``^doi\\s*:?\\s*<doi>`` — the old line-prefix predicate) wins over
     incidental prose/URL hits. With no labeled line, fall back to first-match
-    over the admitted bag (recovers Marker mid-prose own-DOIs such as song2023).
+    over the admitted bag (recovers Marker mid-prose own-DOIs such as park2023).
 
     Funder-registry DOIs (``10.13039/``) are never returned. This helper is for
     the markdown path only (labeled-line preference). :func:`extract_doi` also

@@ -1,7 +1,6 @@
 # ADR 0008 — Key retraction (retract_key): unbinding a SHA for non-recoverable identity
 
 Status: Accepted (2026-07-17)
-Bead: alexandria-smq (step 4) · Impl: see `impl(...): remediate 6 bogus book keys`
 Extends: ADR 0001 (citation key registry), ADR 0007 (amend_key)
 
 ## Context
@@ -37,4 +36,4 @@ and raises on an unknown SHA. No schema change — it reuses the same `entries` 
   with title-fragment authors); their entries were never pushed, so this is a
   working-tree cleanup, not a rewrite of published history.
 - Follow-up: retract_key ships without a dedicated unit test (verified via the
-  remediation gate). A focused regression test is filed as a follow-up bead.
+  remediation gate). A focused regression test is a follow-up.

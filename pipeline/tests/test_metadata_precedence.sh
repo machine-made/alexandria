@@ -269,7 +269,7 @@ assert identified['metadata_confidence'] == 'high', identified
 PY
 
 # ---------------------------------------------------------------------------
-# Year evidence precedence + plausibility gate (alexandria-qcn)
+# Year evidence precedence + plausibility gate
 # ---------------------------------------------------------------------------
 PYTHONPATH="$ROOT/pipeline${PYTHONPATH:+:$PYTHONPATH}" python3 - <<'PY'
 from datetime import datetime

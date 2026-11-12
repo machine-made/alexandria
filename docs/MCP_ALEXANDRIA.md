@@ -11,6 +11,7 @@ tool error. A claim without a usable `bib_key` did not come from the library.
 |-------|--------|
 | Interpreter | `<library>/.venv/bin/python` (needs `numpy` only; the server speaks the MCP protocol itself) |
 | Server | `pipeline/alexandria_mcp.py` |
+| Library | `--library` or `$ALEXANDRIA_LIBRARY` (default: current directory) |
 | Index DB | `$ALEXANDRIA_INDEX_DB` or `<library>/.sc/alexandria-qim/index.db` |
 
 Build / refresh the index (library root):
@@ -135,9 +136,9 @@ chunk in the library, so nothing becomes unreachable.
 ## Worked workflow
 
 1. `search` with `query="transpiration cooling"`, `mode="fts"`.
-2. Take `bib_key` from a hit (e.g. `wang2029`).
+2. Take `bib_key` from a hit (e.g. `xu2029`).
 3. Optionally `get_work` / `bib` to confirm the same `bib_key` and copy BibTeX.
-4. In the manuscript write `\cite{wang2029}` (or the key you received).
+4. In the manuscript write `\cite{xu2029}` (or the key you received).
 
 ## Network-free smoke
 
@@ -197,8 +198,8 @@ if payload is None:
     payload = json.loads(result["content"][0]["text"])
 for hit in payload["results"]:
     print(hit["bib_key"], hit["score"], hit["text"][:60])
-assert payload["results"] and payload["results"][0]["bib_key"] == "wang2029"
-print("smoke OK: bib_key=wang2029")
+assert payload["results"] and payload["results"][0]["bib_key"] == "xu2029"
+print("smoke OK: bib_key=xu2029")
 proc.stdin.close()
 proc.wait(timeout=3)
 PY

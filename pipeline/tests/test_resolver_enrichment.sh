@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Offline tests for opt-in DOI resolver enrichment (alexandria-fvb).
+# Offline tests for opt-in DOI resolver enrichment.
 # All network I/O goes through an injectable fixture fetcher — zero real network.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

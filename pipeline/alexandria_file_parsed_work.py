@@ -8,6 +8,7 @@ import shutil
 import sys
 from pathlib import Path
 
+from alexandria_library import default_library
 from alexandria_bibtex import bibtex_entry, rebuild_root_bibliography
 from alexandria_key_registry import KeyRegistry
 from alexandria_metadata_common import (
@@ -234,8 +235,8 @@ def install_staged_work(stage_dir: Path, work_dir: Path, md_tmp: Path, md_dst: P
 
 def main() -> int:
     parsed_work = Path(os.environ["ALEXANDRIA_PARSED_WORK"]).resolve()
-    drop_dir = Path(os.environ.get("ALEXANDRIA_DROP_DIR", str(Path.home() / "alexandria" / "DROP_HERE"))).resolve()
-    library_root = Path(os.environ.get("ALEXANDRIA_LIBRARY_ROOT", str(Path.home() / "alexandria"))).resolve()
+    library_root = Path(os.environ.get("ALEXANDRIA_LIBRARY_ROOT") or default_library()).resolve()
+    drop_dir = Path(os.environ.get("ALEXANDRIA_DROP_DIR", str(library_root / "DROP_HERE"))).resolve()
     log_file = Path(os.environ.get("ALEXANDRIA_FILE_LOG", str(library_root / "pipeline" / "logs" / "file-parsed.log"))).resolve()
 
     stem = parsed_work.name

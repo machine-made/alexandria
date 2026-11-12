@@ -366,4 +366,13 @@ assert out["valid"] is False and any("active embedder" in e for e in out["valida
 print("upsert-work reports the embedder mismatch")
 PY
 
+echo "== ALEXANDRIA_LIBRARY is the default --library =="
+ALEXANDRIA_LIBRARY="$SLIB" python3 "$INDEX" rebuild --db "$TMP/envlib.db" --json > "$TMP/envlib.json"
+python3 - "$TMP/envlib.json" <<'PY'
+import json, sys
+stats = json.load(open(sys.argv[1]))["stats"]
+assert stats["works"] == 3 and stats["library_root"].endswith("/slib"), stats
+print("ALEXANDRIA_LIBRARY default ok")
+PY
+
 echo "ALL ALEXANDRIA INDEX TESTS PASSED"

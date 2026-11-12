@@ -25,7 +25,7 @@ assert m['category'] == 'papers'
 assert m['authors'] == ['Ada Lovelace']
 assert m['metadata_source'] == 'heuristic'
 # Title from heading heuristics without a structured id → low (format-agnostic
-# author-identity gate; was epub-only before alexandria-smq).
+# author-identity gate; was epub-only before).
 assert m['metadata_confidence'] == 'low'
 assert m['source_stem'] == 'work'
 assert m['source_files'] == []
@@ -116,7 +116,7 @@ from pathlib import Path
 m=json.loads(Path('$CITED/metadata.json').read_text())
 assert m['doi'] == ''
 assert m['metadata_source'] == 'heuristic'
-# Heading-heuristic title, no structured id → low (alexandria-smq format-agnostic hold).
+# Heading-heuristic title, no structured id → low (format-agnostic hold).
 assert m['metadata_confidence'] == 'low'
 PY
 

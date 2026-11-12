@@ -1,10 +1,9 @@
 # ADR 0004 — Year inference decision
 
 Status: Accepted (2026-07-14)
-Bead: alexandria-qcn · Impl: see `impl(fix): alexandria-qcn year inference — evidence precedence + plausibility gate`
 
 ## Context
-`inferred_year` read a heat-capacity table value (`2029 J/kg/K`) as wang2029's
+`inferred_year` read a heat-capacity table value (`2029 J/kg/K`) as xu2029's
 publication year and filed it at HIGH confidence: the paper's `pdf_meta.json`
 had no discrete `year` (only `dates: 2026-06-04`), its DOI embeds `.2026.`, but
 neither was used — the bare-token fallback grabbed the first `19xx|20xx` token in
@@ -42,11 +41,11 @@ confidence. Year provenance is recorded in `metadata_field_sources['year']`.
 ## Consequences
 - A future or table-value year can no longer file at high confidence; such a
   work holds for review (`metadata_confidence == "low"`).
-- Real wang2029 re-inference yields year `2026` from the DOI (verified), with the
+- Real xu2029 re-inference yields year `2026` from the DOI (verified), with the
   correct provenance — no longer a false `heuristic` label.
 - DOI string parsing is treated as weaker than pdf dates on conflict, so arXiv
   `YYMM` ids and reused journal-id years cannot override reliable dates.
-- The already-filed `wang2029` work keeps its wrong key until a deliberate,
-  audited re-key to `wang2026` (tracked separately; the code fix does not mutate
-  the library). Resolver-issued dates (bead fvb) slot in above as an even
+- The already-filed `xu2029` work keeps its wrong key until a deliberate,
+  audited re-key to `xu2026` (tracked separately; the code fix does not mutate
+  the library). Resolver-issued dates slot in above as an even
   stronger year source with no change to this order.

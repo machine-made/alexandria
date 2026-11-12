@@ -1,11 +1,10 @@
 # ADR 0002 — Metadata precedence ladder
 
 Status: Accepted (2026-06-27)
-Bead: alexandria-t3h · Impl: see `impl(feat): capture embedded PDF metadata + precedence ladder`
 
 ## Context
 A filed work's metadata can come from several sources of differing authority: a resolved
-identifier (DOI/Crossref/arXiv/ISBN — bead oeh, not yet built), the PDF's own embedded
+identifier (DOI/Crossref/arXiv/ISBN — not yet built), the PDF's own embedded
 Info/XMP metadata, identifiers/front-matter parsed from the Marker Markdown, and pure
 heuristics over the text. Previously `infer_metadata` mixed these ad hoc with `or` chains,
 so a weak heuristic could mask a stronger source and the origin of each field was invisible.

@@ -22,7 +22,7 @@ from typing import Any, Sequence
 
 import numpy as np
 
-from alexandria_library import active_embedder, embedding_row_errors
+from alexandria_library import active_embedder, default_library, embedding_row_errors
 from alexandria_library import embeddings_path as embeddings_file
 from alexandria_metadata_common import VALID_CATEGORIES, load_json, sha256_file
 from alexandria_scholar_bib import BibTeXParseError, parse_one_entry
@@ -1710,8 +1710,8 @@ def _add_common_flags(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--library",
         type=Path,
-        default=Path("."),
-        help="library root (category dirs live here)",
+        default=default_library(),
+        help="library root (default: $ALEXANDRIA_LIBRARY or the current directory)",
     )
     parser.add_argument(
         "--db",

@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from alexandria_library import default_library
 from alexandria_metadata_common import (
     base_key,
     find_existing_by_sha,
@@ -156,7 +157,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--drop", type=Path, default=Path("DROP_HERE"))
     parser.add_argument("--parsed", type=Path, default=Path("pipeline/parsed"))
-    parser.add_argument("--library", type=Path, default=Path("."))
+    parser.add_argument("--library", type=Path, default=default_library())
     parser.add_argument("--out-dir", type=Path, default=Path("pipeline/audit"))
     args = parser.parse_args()
     drop_dir = args.drop.resolve()

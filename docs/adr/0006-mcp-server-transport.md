@@ -1,7 +1,6 @@
 # ADR 0006 — mcp-alexandria: official MCP SDK at the agent-facing edge
 
-Status: Accepted (2026-07-16)
-Bead: alexandria-tvw · Impl: see `impl(feat): alexandria-tvw stand up mcp-alexandria`
+Status: Superseded by ADR 0009 (the server no longer uses the SDK). Was: Accepted (2026-07-16)
 Qualifies: ADR 0005 (dependency-free search index)
 
 ## Context
@@ -70,6 +69,6 @@ it is writing down one that already existed.
   whitespace-only keys fail closed. This was NOT free — the first implementation checked
   truthiness in two of four tools and leaked `'   '` from all four (`\cite{   }` is not a
   citation). One shared predicate, not four checks, is the shape that holds — the same
-  lesson ADR-adjacent bead 9j1 taught about duplicated surfaces drifting silently.
+  lesson an earlier change taught about duplicated surfaces drifting silently.
 - Swapping the SDK for something slimmer later stays a contained change behind the same
   4-tool surface.

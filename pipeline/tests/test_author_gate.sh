@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Permanent fixtures for alexandria-smq — author-identity gate.
+# Permanent fixtures: author-identity gate.
 # Table-driven: the six real bogus shapes hold; real person-authors still file;
 # PDF heuristic-only identity holds (format-agnostic).
 set -euo pipefail

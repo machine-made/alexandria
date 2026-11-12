@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Permanent fixtures for alexandria-smq — informal metadata kind.
+# Permanent fixtures: informal metadata kind.
 # Test informal kind handling in metadata_confidence and informal_key.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

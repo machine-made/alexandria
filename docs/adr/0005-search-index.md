@@ -1,12 +1,10 @@
 # ADR 0005 — Alexandria search index (dependency-free FTS5 + cosine)
 
 Status: Accepted (2026-07-15)
-Bead: alexandria-qim · Impl: see `impl(feat): alexandria-qim build the Alexandria search index`
 
 ## Context
-The citation library needed a searchable index for its consumers (the MCP server,
-bead tvw) once filing metadata became trustworthy (ADR 0002–0004). The folded design
-beads (fyz/5zn/z9n/0ww/4il/xso/m3d/rig) specified FTS5 keyword search plus vector
+The citation library needed a searchable index for its consumers (the MCP server) once filing metadata became trustworthy (ADR 0002–0004). The earlier design
+notes specified FTS5 keyword search plus vector
 semantic search over the per-work `embeddings.jsonl` that the pipeline already
 produces, named `sqlite-vec` as the vector store. sqlite-vec is not installed, and
 adding it is a new dependency; the corpus is small (2 works filed, ~100 works
@@ -42,9 +40,8 @@ Build a single manual module `pipeline/alexandria_index.py` — a SQLite index t
   library file (`*.md`/`*.bib`/`metadata.json`/registry/root bib) — a bug costs a
   rebuild, not data loss, which is why the verification bar is fixtures + one real
   end-to-end rather than the filing thread's pilot gates.
-- Real-library end-to-end verified: `rebuild` → 2 works / 100 chunks; queries
-  "oblique shock"→song2023, "transpiration cooling"→wang2029, "boundary layer"→
-  song2023 return the correct citation keys.
-- Follow-up alexandria-zpt tracks optional validation strengthening (embedding/text
-  desync, field-level bib↔metadata parity). The MCP server (tvw) consumes this
+- A real-library end-to-end check (rebuild, then keyword queries returning the expected
+  citation keys) is run against the library data, not in this repository's suite.
+- Optional follow-up: validation strengthening (embedding/text
+  desync, field-level bib↔metadata parity). The MCP server consumes this
   index's query API next.

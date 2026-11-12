@@ -62,6 +62,7 @@ if str(_PIPELINE) not in sys.path:
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "2")
 
 import alexandria_index as index  # noqa: E402
+from alexandria_library import default_library  # noqa: E402
 
 SERVER_NAME = "alexandria"
 SERVER_VERSION = "0.1.0"
@@ -765,7 +766,7 @@ def tool_definitions() -> list[dict[str, Any]]:
                 "properties": {
                     "key": {
                         "type": "string",
-                        "description": "Work key or bib_key (e.g. wang2029)",
+                        "description": "Work key or bib_key (e.g. xu2029)",
                     },
                     "include_markdown": {
                         "type": "boolean",
@@ -1014,9 +1015,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--library",
         type=Path,
-        default=Path("."),
-        help="library root used only to resolve the default DB path "
-        "(overridden by ALEXANDRIA_INDEX_DB)",
+        default=default_library(),
+        help="library root used to resolve the default DB path and markdown "
+        "(default: $ALEXANDRIA_LIBRARY or the current directory; the DB path is overridden by ALEXANDRIA_INDEX_DB)",
     )
     parser.add_argument(
         "--db",
