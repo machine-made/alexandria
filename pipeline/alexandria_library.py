@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Where a library keeps its vectors.
 
 A library with ``scriptorium.toml`` at its root keeps one vector set per embedder:

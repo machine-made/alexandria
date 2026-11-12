@@ -3,6 +3,8 @@ name = "alexandria"
 version = "0.1.0"
 description = "A local research library for AI agents: books and papers as Markdown, indexed by citation key, searchable over MCP."
 requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 dependencies = ["numpy>=2,<3"]
 
 [project.optional-dependencies]

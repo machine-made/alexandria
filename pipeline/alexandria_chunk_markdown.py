@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Create deterministic JSONL chunks from one Marker Markdown artifact."""
 from __future__ import annotations
 

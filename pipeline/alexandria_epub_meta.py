@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Extract OPF/Dublin Core metadata into a durable epub_meta.json artifact."""
 from __future__ import annotations
 

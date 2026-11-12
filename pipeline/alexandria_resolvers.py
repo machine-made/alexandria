@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Safe, fixture-testable bibliographic metadata resolvers.
 
 Resolvers are deliberately opt-in: importing this module or calling its helpers does not

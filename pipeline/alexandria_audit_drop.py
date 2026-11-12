@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Audit Alexandria DROP_HERE without moving or deleting files."""
 from __future__ import annotations
 

@@ -24,3 +24,7 @@ env -C . bash pipeline/tests/test_alexandria_mcp.sh
 ```
 
 Tests run from the repository root and use synthetic fixtures.
+
+## Licence
+
+Apache License 2.0. See `LICENSE` and `NOTICE`.

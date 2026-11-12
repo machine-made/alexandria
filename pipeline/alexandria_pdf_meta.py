@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Extract embedded PDF Info/XMP metadata into a durable pdf_meta.json artifact."""
 from __future__ import annotations
 

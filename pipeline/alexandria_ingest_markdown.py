@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """File an already-parsed Markdown file as an Alexandria work.
 
 This is the ingest path for keyword-less content that never went through the

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """stdio MCP server over the Alexandria search index (read-only).
 
 Exposes four tools — search, get_work, get_chunk, bib — so agents can retrieve

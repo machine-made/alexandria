@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Audited re-key of a filed Alexandria work (SHA identity stable).
 
 Transaction: backup → amend_key → move artifacts → re-derive year → regen bibs

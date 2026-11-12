@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Alexandria SQLite search index — FTS5 + numpy cosine + hybrid + CLI.
 
 Derived, rebuildable state. Read-only over the filed library; never writes to

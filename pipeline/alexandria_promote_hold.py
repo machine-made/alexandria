@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Promote a corrected Alexandria hold entry into the canonical library."""
 from __future__ import annotations
 

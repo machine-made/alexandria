@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Normalize one manually exported Google Scholar BibTeX entry.
 
 This is the non-scraping Scholar fallback primitive: it reads exactly one

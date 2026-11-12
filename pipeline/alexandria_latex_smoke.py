@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compile Alexandria BibLaTeX output with biber as a structural smoke test."""
 from __future__ import annotations
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Shared Alexandria metadata and file-identity helpers."""
 from __future__ import annotations
 

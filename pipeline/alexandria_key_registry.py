@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Append-only Alexandria citation-key registry.
 
 The registry is keyed by source SHA-256.  Once a source hash has a citation key,
