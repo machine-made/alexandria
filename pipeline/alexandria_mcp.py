@@ -56,12 +56,17 @@ _PIPELINE = Path(__file__).resolve().parent
 if str(_PIPELINE) not in sys.path:
     sys.path.insert(0, str(_PIPELINE))
 
+# OpenBLAS starts one thread per core and they spin between calls. A search is one
+# matrix-vector product, so two threads give the same results (measured: identical top-8 ids
+# and scores on 60 queries) at about 1/8 of the CPU. Must be set before numpy loads.
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "2")
+
 import alexandria_index as index  # noqa: E402
 
 SERVER_NAME = "alexandria"
 SERVER_VERSION = "0.1.0"
 
-# Clients reach this server over Tailscale SSH, whose wrapper keeps stdin open after the
+# Clients often reach this server over SSH, whose wrapper can keep stdin open after the
 # client is gone — so a dead session never produces EOF and the process would live forever.
 # Self-exit on inactivity is the only reliable reaper: request activity is the one signal
 # that distinguishes an orphan from an idle-but-live session.

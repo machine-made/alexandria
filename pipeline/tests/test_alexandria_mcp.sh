@@ -1162,5 +1162,10 @@ assert by_id[8]["error"]["code"] == -32601, by_id[8]
 print("protocol edges ok")
 PY
 
+echo "== BLAS thread default (CPU) =="
+env -u OPENBLAS_NUM_THREADS "$PY" -c 'import os, alexandria_mcp; assert os.environ["OPENBLAS_NUM_THREADS"] == "2", os.environ.get("OPENBLAS_NUM_THREADS")'
+OPENBLAS_NUM_THREADS=5 "$PY" -c 'import os, alexandria_mcp; assert os.environ["OPENBLAS_NUM_THREADS"] == "5"'
+echo "blas threads default ok, overridable"
+
 echo "ALL MCP SERVER CHECKS PASSED"
 echo "test_alexandria_mcp.sh OK"
