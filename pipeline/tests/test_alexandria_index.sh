@@ -375,4 +375,21 @@ assert stats["works"] == 3 and stats["library_root"].endswith("/slib"), stats
 print("ALEXANDRIA_LIBRARY default ok")
 PY
 
+echo "== export-serving: strips vectors, keeps the sidecar stamp valid, sets the serving library root =="
+python3 "$INDEX" export-serving --library "$SLIB" --db "$SDB" --out "$TMP/serving.db" --library-root /srv/library --json > "$TMP/export.json"
+python3 - "$TMP/export.json" "$SDB" "$TMP/serving.db" <<'PY'
+import json, sys
+import alexandria_index as idx
+out = json.load(open(sys.argv[1]))
+assert out["ok"] and out["output_size"] > 0, out
+from pathlib import Path
+src, dst = idx.connect(Path(sys.argv[2])), idx.connect(Path(sys.argv[3]))
+assert idx.get_meta(dst, "library_root") == "/srv/library"
+assert idx.get_meta(src, "library_root") != "/srv/library"
+assert dst.execute("SELECT MAX(LENGTH(embedding)) FROM chunk_embeddings").fetchone()[0] == 0
+assert idx._index_stamp(src) == idx._index_stamp(dst), "stripped copy changes the sidecar stamp"
+assert dst.execute("SELECT COUNT(*) FROM chunks").fetchone()[0] == src.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
+print("export-serving ok")
+PY
+
 echo "ALL ALEXANDRIA INDEX TESTS PASSED"

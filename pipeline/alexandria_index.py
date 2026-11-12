@@ -775,13 +775,16 @@ def index_stats(conn: sqlite3.Connection) -> dict[str, Any]:
     }
 
 
-def export_serving_db(source_db: Path, out_path: Path) -> dict[str, Any]:
+def export_serving_db(source_db: Path, out_path: Path, library_root: str | None = None) -> dict[str, Any]:
     """Write a serving-only copy of `source_db` at `out_path`: identical schema and rows,
     except `chunk_embeddings.embedding` is emptied (zero-length blob — the row, chunk_id,
     dim, and joins are all unchanged). the serving host never reads that blob (search_vector serves
     vectors from the mmap sidecar, not the DB), so shipping it is ~966 MB of dead weight per
     deploy. Only ever reads `source_db` (via sqlite3's backup API, which copies pages out —
-    it never opens the source for writing)."""
+    it never opens the source for writing).
+
+    `library_root` replaces the stored library path, because the serving host keeps the
+    Markdown at a different absolute path than the build host (``get_work`` reads it from there)."""
     if out_path.exists():
         out_path.unlink()
     src_size = source_db.stat().st_size
@@ -794,6 +797,8 @@ def export_serving_db(source_db: Path, out_path: Path) -> dict[str, Any]:
         src.close()
 
     dst.execute("UPDATE chunk_embeddings SET embedding = X''")
+    if library_root:
+        set_meta(dst, "library_root", library_root)
     dst.commit()
     dst.execute("VACUUM")
     # VACUUM can renumber rowids for `chunks` (no INTEGER PRIMARY KEY column to pin them),
@@ -1687,7 +1692,7 @@ def cmd_stats(args: argparse.Namespace) -> int:
 
 
 def cmd_export_serving(args: argparse.Namespace) -> int:
-    stats = export_serving_db(args.db, args.out)
+    stats = export_serving_db(args.db, args.out, args.library_root)
     payload = {"ok": True, "action": "export-serving", "source": str(args.db), "out": str(args.out), **stats}
     if args.json:
         dump_json(payload)
@@ -1768,6 +1773,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_common_flags(p_export)
     p_export.add_argument("--out", type=Path, required=True, help="output path for the stripped copy")
+    p_export.add_argument(
+        "--library-root",
+        default=None,
+        help="library path on the serving host; stored in the copy so get_work finds the Markdown there",
+    )
     p_export.set_defaults(func=cmd_export_serving)
 
     return parser
