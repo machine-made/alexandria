@@ -1,0 +1,2 @@
+{"chunk_id":"alpha_src:0000:aaaaaaaaaaaaaaaa","chunk_index":0,"model":"fixture-mini","embedding_dim":4,"embedding":[1.0,0.0,0.0,0.0]}
+{"chunk_id":"alpha_src:0001:bbbbbbbbbbbbbbbb","chunk_index":1,"model":"fixture-mini","embedding_dim":4,"embedding":[0.9,0.1,0.0,0.0]}

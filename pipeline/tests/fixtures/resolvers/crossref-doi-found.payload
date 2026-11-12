@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "message": {
+    "title": ["Crossref Fixture Title"],
+    "author": [
+      {"given": "Ada", "family": "Lovelace"},
+      {"name": "Charles Babbage"}
+    ],
+    "issued": {"date-parts": [[1843, 12, 1]]},
+    "DOI": "10.5555/DEMO",
+    "ISBN": ["978-1-491-95766-0"],
+    "publisher": "Fixture Press",
+    "container-title": ["Journal of Fixtures"],
+    "page": "1-9"
+  }
+}

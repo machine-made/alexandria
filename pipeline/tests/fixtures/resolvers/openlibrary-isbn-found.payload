@@ -1,0 +1,10 @@
+{
+  "ISBN:9781491957660": {
+    "title": "Open Library Fixture Book",
+    "authors": [{"name": "Luciano Ramalho"}],
+    "publish_date": "2015",
+    "publishers": [{"name": "O'Reilly Media"}],
+    "number_of_pages": 792,
+    "identifiers": {"isbn_13": ["9781491957660"]}
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "title": "CSL Fallback Title",
+  "author": [
+    {"given": "Grace", "family": "Hopper"}
+  ],
+  "issued": {"date-parts": [[1952]]},
+  "DOI": "10.7777/fallback",
+  "publisher": "Fallback Press",
+  "container-title": "Fallback Journal",
+  "page": "10-12"
+}

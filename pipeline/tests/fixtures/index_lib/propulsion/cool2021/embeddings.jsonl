@@ -1,0 +1,2 @@
+{"chunk_id":"cool_src:0000:dddddddddddddddd","chunk_index":0,"model":"fixture-mini","embedding_dim":4,"embedding":[0.0,0.0,1.0,0.0]}
+{"chunk_id":"cool_src:0001:eeeeeeeeeeeeeeee","chunk_index":1,"model":"fixture-mini","embedding_dim":4,"embedding":[0.0,0.0,0.8,0.2]}

@@ -1,0 +1,11 @@
+{
+  "title": "Oblique Shock Boundary Layer Interaction",
+  "author": "Ada Alpha",
+  "authors": ["Ada Alpha"],
+  "year": "2020",
+  "category": "papers",
+  "doi": "10.1000/alpha.2020",
+  "source_stem": "alpha_src",
+  "source_sha256": {"alpha_src.pdf": "aaa111"},
+  "source_files": [{"name": "alpha_src.pdf", "filed_name": "alpha2020.pdf", "format": "pdf", "sha256": "aaa111", "size": 3}]
+}
