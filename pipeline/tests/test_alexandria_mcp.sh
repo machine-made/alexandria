@@ -1114,5 +1114,53 @@ for value, tag in (("", "empty"), ("   ", "whitespace")):
 print("adversarial bib_key: FAIL-CLOSED (fts+vector+get_chunk+get_work+bib)")
 PY
 
+echo "== protocol edges: version echo, ping, bad arguments, unknown method, notification silence =="
+REQS_EDGE="$TMP/reqs_edge.json"
+"$PY" - "$REQS_EDGE" "$PROTOCOL" <<'PY'
+import json, sys
+path, protocol = sys.argv[1], sys.argv[2]
+def req(i, method, params=None):
+    msg = {"jsonrpc": "2.0", "id": i, "method": method}
+    if params is not None:
+        msg["params"] = params
+    return {"kind": "request", "msg": msg}
+def call(i, args):
+    return req(i, "tools/call", {"name": "search", "arguments": args})
+init = {"protocolVersion": protocol, "capabilities": {}, "clientInfo": {"name": "t", "version": "0"}}
+reqs = [
+    req(1, "initialize", init),
+    {"kind": "notification", "msg": {"jsonrpc": "2.0", "method": "notifications/initialized"}},
+    req(2, "ping"),
+    req(3, "initialize", {**init, "protocolVersion": "1999-01-01"}),
+    call(4, {}),
+    call(5, {"query": "oblique", "limit": "x"}),
+    call(6, {"query": "oblique", "mode": "fts", "extra": 1}),
+    call(7, {"query": "oblique", "mode": "sideways"}),
+    req(8, "no/such/method"),
+]
+json.dump(reqs, open(path, "w"))
+PY
+drive_mcp "$REQS_EDGE" > "$TMP/edge_out.json"
+"$PY" - "$TMP/edge_out.json" "$PROTOCOL" <<'PY'
+import json, sys
+out = json.load(open(sys.argv[1]))
+by_id = {r["id"]: r for r in out}
+assert [r["id"] for r in out] == [1, 2, 3, 4, 5, 6, 7, 8], [r["id"] for r in out]  # notification got no reply
+assert by_id[1]["result"]["protocolVersion"] == sys.argv[2], by_id[1]
+assert by_id[1]["result"]["serverInfo"]["name"] == "alexandria", by_id[1]
+assert "tools" in by_id[1]["result"]["capabilities"], by_id[1]
+assert by_id[2]["result"] == {}, by_id[2]
+assert by_id[3]["result"]["protocolVersion"] != "1999-01-01", by_id[3]
+def message(r):
+    assert r["result"]["isError"] is True, r
+    return " ".join(b["text"] for b in r["result"]["content"])
+assert "'query' is a required property" in message(by_id[4]), by_id[4]
+assert "is not of type 'integer'" in message(by_id[5]), by_id[5]
+assert "Additional properties are not allowed" in message(by_id[6]), by_id[6]
+assert "is not one of" in message(by_id[7]), by_id[7]
+assert by_id[8]["error"]["code"] == -32601, by_id[8]
+print("protocol edges ok")
+PY
+
 echo "ALL MCP SERVER CHECKS PASSED"
 echo "test_alexandria_mcp.sh OK"

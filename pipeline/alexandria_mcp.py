@@ -35,17 +35,18 @@ and has no disable flag — ``get_chunk``/``get_work(include_markdown=True)``
 still reach every chunk, so nothing becomes unreachable by it.
 
 Config: reuses ``alexandria_index.default_db_path()`` / ``ALEXANDRIA_INDEX_DB``.
-No write path. Interpreter: project ``.venv/bin/python`` (needs mcp + numpy).
+No write path. Interpreter: project ``.venv/bin/python`` (needs numpy only; the
+MCP stdio protocol is spoken directly, no SDK).
 """
 from __future__ import annotations
 
 import argparse
-import asyncio
 import json
 import os
 import re
 import sqlite3
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -56,9 +57,6 @@ if str(_PIPELINE) not in sys.path:
     sys.path.insert(0, str(_PIPELINE))
 
 import alexandria_index as index  # noqa: E402
-from mcp import types  # noqa: E402
-from mcp.server import NotificationOptions, Server  # noqa: E402
-from mcp.server.stdio import stdio_server  # noqa: E402
 
 SERVER_NAME = "alexandria"
 SERVER_VERSION = "0.1.0"
@@ -692,225 +690,315 @@ def tool_bib(conn: sqlite3.Connection, key: str) -> dict[str, Any]:
     }
 
 
-def _tool_error(message: str) -> types.CallToolResult:
-    return types.CallToolResult(
-        content=[types.TextContent(type="text", text=message)],
-        isError=True,
-    )
+def _tool_error(message: str) -> dict[str, Any]:
+    return {"content": [{"type": "text", "text": message}], "isError": True}
 
 
 def _tool_ok(payload: dict[str, Any]) -> dict[str, Any]:
-    """Return structured content (SDK also serializes to text content)."""
-    return payload
+    """Structured content plus the same JSON as text, for clients that read only text."""
+    return {
+        "content": [{"type": "text", "text": json.dumps(payload, indent=2)}],
+        "structuredContent": payload,
+        "isError": False,
+    }
 
 
-def build_server(holder: _ConnHolder) -> Server:
-    server = Server(SERVER_NAME, version=SERVER_VERSION)
+def _tool(name: str, description: str, inputSchema: dict[str, Any]) -> dict[str, Any]:
+    return {"name": name, "description": description, "inputSchema": inputSchema}
 
-    @server.list_tools()
-    async def list_tools() -> list[types.Tool]:
-        global _LAST_ACTIVITY
-        _LAST_ACTIVITY = time.monotonic()
-        # Names: [A-Za-z0-9._-] only; no dots needed — client namespaces by server.
-        return [
-            types.Tool(
-                name="search",
-                description=(
-                    "Search the Alexandria library index (FTS / vector / hybrid). "
-                    "Every hit includes bib_key for \\cite{bib_key} and full chunk text."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "query": {"type": "string", "description": "Free-text query"},
-                        "limit": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "default": 8,
-                            "description": (
-                                "Max hits (default 8). Clamped to [1, 100] "
-                                "inside the tool (0→1, values above 100→100)."
-                            ),
-                        },
-                        "mode": {
-                            "type": "string",
-                            "enum": ["fts", "vector", "hybrid"],
-                            "default": "hybrid",
-                            "description": "fts | vector | hybrid (default hybrid)",
-                        },
-                        "verbose": {
-                            "type": "boolean",
-                            "default": False,
-                            "description": (
-                                "Return the full metadata card (authors, year, "
-                                "category, path, snippet, score_breakdown, ...) "
-                                "in addition to text/heading. Debugging only."
-                            ),
-                        },
-                    },
-                    "required": ["query"],
-                    "additionalProperties": False,
-                },
+
+def tool_definitions() -> list[dict[str, Any]]:
+    # Names: [A-Za-z0-9._-] only; no dots needed — client namespaces by server.
+    return [
+        _tool(
+            name="search",
+            description=(
+                "Search the Alexandria library index (FTS / vector / hybrid). "
+                "Every hit includes bib_key for \\cite{bib_key} and full chunk text."
             ),
-            types.Tool(
-                name="get_work",
-                description=(
-                    "Fetch one work by citation key: metadata, paths, BibTeX, "
-                    "optional full markdown."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "key": {
-                            "type": "string",
-                            "description": "Work key or bib_key (e.g. wang2029)",
-                        },
-                        "include_markdown": {
-                            "type": "boolean",
-                            "default": False,
-                            "description": "Include full markdown body when available",
-                        },
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Free-text query"},
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 8,
+                        "description": (
+                            "Max hits (default 8). Clamped to [1, 100] "
+                            "inside the tool (0→1, values above 100→100)."
+                        ),
                     },
-                    "required": ["key"],
-                    "additionalProperties": False,
-                },
-            ),
-            types.Tool(
-                name="get_chunk",
-                description=(
-                    "Fetch one chunk by chunk_id, or by key + ordinal. "
-                    "Returns chunk text, section heading hierarchy, and bib_key "
-                    "(for citation). Lean default; verbose restores full metadata."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "chunk_id": {
-                            "type": "string",
-                            "description": "Chunk id from a search hit",
-                        },
-                        "key": {
-                            "type": "string",
-                            "description": "Work key (use with ordinal)",
-                        },
-                        "ordinal": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "description": "Chunk ordinal within the work (use with key)",
-                        },
-                        "verbose": {
-                            "type": "boolean",
-                            "default": False,
-                            "description": (
-                                "Return the full metadata card (key, title, "
-                                "authors, year, category, path, chunk_ordinal, "
-                                "doi/isbn/arxiv_id) in addition to the lean fields."
-                            ),
-                        },
+                    "mode": {
+                        "type": "string",
+                        "enum": ["fts", "vector", "hybrid"],
+                        "default": "hybrid",
+                        "description": "fts | vector | hybrid (default hybrid)",
                     },
-                    "additionalProperties": False,
-                },
-            ),
-            types.Tool(
-                name="bib",
-                description=(
-                    "Return the BibTeX entry and path for a citation key "
-                    "(for direct \\cite{bib_key} / bibliography use)."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "key": {
-                            "type": "string",
-                            "description": "Work key or bib_key",
-                        },
+                    "verbose": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": (
+                            "Return the full metadata card (authors, year, "
+                            "category, path, snippet, score_breakdown, ...) "
+                            "in addition to text/heading. Debugging only."
+                        ),
                     },
-                    "required": ["key"],
-                    "additionalProperties": False,
                 },
+                "required": ["query"],
+                "additionalProperties": False,
+            },
+        ),
+        _tool(
+            name="get_work",
+            description=(
+                "Fetch one work by citation key: metadata, paths, BibTeX, "
+                "optional full markdown."
             ),
-        ]
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "description": "Work key or bib_key (e.g. wang2029)",
+                    },
+                    "include_markdown": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Include full markdown body when available",
+                    },
+                },
+                "required": ["key"],
+                "additionalProperties": False,
+            },
+        ),
+        _tool(
+            name="get_chunk",
+            description=(
+                "Fetch one chunk by chunk_id, or by key + ordinal. "
+                "Returns chunk text, section heading hierarchy, and bib_key "
+                "(for citation). Lean default; verbose restores full metadata."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "chunk_id": {
+                        "type": "string",
+                        "description": "Chunk id from a search hit",
+                    },
+                    "key": {
+                        "type": "string",
+                        "description": "Work key (use with ordinal)",
+                    },
+                    "ordinal": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Chunk ordinal within the work (use with key)",
+                    },
+                    "verbose": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": (
+                            "Return the full metadata card (key, title, "
+                            "authors, year, category, path, chunk_ordinal, "
+                            "doi/isbn/arxiv_id) in addition to the lean fields."
+                        ),
+                    },
+                },
+                "additionalProperties": False,
+            },
+        ),
+        _tool(
+            name="bib",
+            description=(
+                "Return the BibTeX entry and path for a citation key "
+                "(for direct \\cite{bib_key} / bibliography use)."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "description": "Work key or bib_key",
+                    },
+                },
+                "required": ["key"],
+                "additionalProperties": False,
+            },
+        ),
+    ]
 
-    @server.call_tool()
-    async def call_tool(name: str, arguments: dict[str, Any]) -> Any:
-        global _LAST_ACTIVITY
-        _LAST_ACTIVITY = time.monotonic()
-        args = arguments or {}
-        conn = _live_conn(holder)
-        try:
-            if name == "search":
-                payload = tool_search(
-                    conn,
-                    str(args.get("query", "")),
-                    limit=int(args.get("limit", 8)),
-                    mode=str(args.get("mode", "hybrid")),
-                    verbose=bool(args.get("verbose", False)),
-                )
-                return _tool_ok(payload)
 
-            if name == "get_work":
-                payload = tool_get_work(
-                    conn,
-                    str(args.get("key", "")),
-                    include_markdown=bool(args.get("include_markdown", False)),
-                )
-                if not payload.get("ok"):
-                    return _tool_error(payload.get("message", "not found"))
-                return _tool_ok(payload)
-
-            if name == "get_chunk":
-                payload = tool_get_chunk(
-                    conn,
-                    chunk_id=args.get("chunk_id"),
-                    key=args.get("key"),
-                    ordinal=args.get("ordinal"),
-                    verbose=bool(args.get("verbose", False)),
-                )
-                if not payload.get("ok"):
-                    return _tool_error(payload.get("message", "not found"))
-                return _tool_ok(payload)
-
-            if name == "bib":
-                payload = tool_bib(conn, str(args.get("key", "")))
-                if not payload.get("ok"):
-                    return _tool_error(payload.get("message", "not found"))
-                return _tool_ok(payload)
-
-            return _tool_error(f"unknown tool: {name}")
-        except ValueError as exc:
-            return _tool_error(str(exc))
-        except Exception as exc:  # noqa: BLE001 — surface as tool error, keep server alive
-            return _tool_error(f"{type(exc).__name__}: {exc}")
-
-    return server
+_TYPE_CHECKS = {
+    "string": lambda v: isinstance(v, str),
+    "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
+    "boolean": lambda v: isinstance(v, bool),
+}
 
 
-async def _idle_watchdog() -> None:
-    """Exit when no tool activity for IDLE_EXIT_SECONDS. Disabled when the value is <= 0."""
+def _validate_arguments(schema: dict[str, Any], args: dict[str, Any]) -> str | None:
+    """Check ``args`` against a tool's inputSchema; return a message or None.
+    Covers exactly what the schemas use: required, type, enum, minimum, additionalProperties."""
+    props = schema.get("properties", {})
+    for name in schema.get("required", []):
+        if name not in args:
+            return f"'{name}' is a required property"
+    for name, value in args.items():
+        spec = props.get(name)
+        if spec is None:
+            if schema.get("additionalProperties") is False:
+                return f"Additional properties are not allowed ('{name}' was unexpected)"
+            continue
+        check = _TYPE_CHECKS.get(spec.get("type", ""))
+        if check is not None and not check(value):
+            return f"{value!r} is not of type '{spec['type']}'"
+        if "enum" in spec and value not in spec["enum"]:
+            return f"{value!r} is not one of {spec['enum']}"
+        if "minimum" in spec and value < spec["minimum"]:
+            return f"{value!r} is less than the minimum of {spec['minimum']}"
+    return None
+
+
+def call_tool(holder: _ConnHolder, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+    global _LAST_ACTIVITY
+    _LAST_ACTIVITY = time.monotonic()
+    args = arguments or {}
+    schema = next((t["inputSchema"] for t in tool_definitions() if t["name"] == name), None)
+    if schema is not None:
+        problem = _validate_arguments(schema, args)
+        if problem:
+            return _tool_error(f"Input validation error: {problem}")
+    conn = _live_conn(holder)
+    try:
+        if name == "search":
+            payload = tool_search(
+                conn,
+                str(args.get("query", "")),
+                limit=int(args.get("limit", 8)),
+                mode=str(args.get("mode", "hybrid")),
+                verbose=bool(args.get("verbose", False)),
+            )
+            return _tool_ok(payload)
+
+        if name == "get_work":
+            payload = tool_get_work(
+                conn,
+                str(args.get("key", "")),
+                include_markdown=bool(args.get("include_markdown", False)),
+            )
+            if not payload.get("ok"):
+                return _tool_error(payload.get("message", "not found"))
+            return _tool_ok(payload)
+
+        if name == "get_chunk":
+            payload = tool_get_chunk(
+                conn,
+                chunk_id=args.get("chunk_id"),
+                key=args.get("key"),
+                ordinal=args.get("ordinal"),
+                verbose=bool(args.get("verbose", False)),
+            )
+            if not payload.get("ok"):
+                return _tool_error(payload.get("message", "not found"))
+            return _tool_ok(payload)
+
+        if name == "bib":
+            payload = tool_bib(conn, str(args.get("key", "")))
+            if not payload.get("ok"):
+                return _tool_error(payload.get("message", "not found"))
+            return _tool_ok(payload)
+
+        return _tool_error(f"unknown tool: {name}")
+    except ValueError as exc:
+        return _tool_error(str(exc))
+    except Exception as exc:  # noqa: BLE001 — surface as tool error, keep server alive
+        return _tool_error(f"{type(exc).__name__}: {exc}")
+
+
+
+SUPPORTED_PROTOCOLS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
+
+
+class _RpcError(Exception):
+    def __init__(self, code: int, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def handle_request(holder: _ConnHolder, method: str, params: dict[str, Any]) -> dict[str, Any]:
+    if method == "initialize":
+        asked = params.get("protocolVersion")
+        return {
+            "protocolVersion": asked if asked in SUPPORTED_PROTOCOLS else SUPPORTED_PROTOCOLS[0],
+            "capabilities": {"experimental": {}, "tools": {"listChanged": False}},
+            "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
+        }
+    if method == "ping":
+        return {}
+    if method == "tools/list":
+        return {"tools": tool_definitions()}
+    if method == "tools/call":
+        if not isinstance(params.get("name"), str):
+            raise _RpcError(-32602, "tools/call needs a string 'name'")
+        return call_tool(holder, params["name"], params.get("arguments"))
+    raise _RpcError(-32601, f"Method not found: {method}")
+
+
+def _idle_watchdog() -> None:
+    """Exit when no request arrives for IDLE_EXIT_SECONDS. Disabled when the value is <= 0."""
     if IDLE_EXIT_SECONDS <= 0:
         return
     while True:
-        await asyncio.sleep(min(60, IDLE_EXIT_SECONDS))
+        time.sleep(min(60, IDLE_EXIT_SECONDS))
         if time.monotonic() - _LAST_ACTIVITY >= IDLE_EXIT_SECONDS:
-            # os._exit: we are a stdio server with nothing to flush, and a clean asyncio
-            # shutdown can block on the never-closing stdin transport.
+            # os._exit: nothing to flush, and a normal exit can block on the open stdin.
             os._exit(0)
 
 
-async def run_stdio(conn: sqlite3.Connection, db_path: Path) -> None:
+def run_stdio(conn: sqlite3.Connection, db_path: Path) -> None:
+    """Newline-delimited JSON-RPC over stdin/stdout. Stdout carries protocol only; anything
+    else that prints goes to stderr. Notifications get no reply."""
+    global _LAST_ACTIVITY
     # Resolved so this matches the path string alexandria_index reports back via
     # PRAGMA database_list / _conn_db_path — that's what the vector cache is keyed on.
     holder = _ConnHolder(conn, db_path.resolve())
-    server = build_server(holder)
-    init = server.create_initialization_options(
-        notification_options=NotificationOptions(),
-    )
-    watchdog = asyncio.create_task(_idle_watchdog())
+    out = sys.stdout
+    sys.stdout = sys.stderr
+    threading.Thread(target=_idle_watchdog, daemon=True).start()
+
+    def reply(obj: dict[str, Any]) -> None:
+        out.write(json.dumps(obj) + "\n")
+        out.flush()
+
     try:
-        async with stdio_server() as (read_stream, write_stream):
-            await server.run(read_stream, write_stream, init)
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            if not line.strip():
+                continue
+            _LAST_ACTIVITY = time.monotonic()
+            try:
+                msg = json.loads(line)
+            except ValueError:
+                reply({"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}})
+                continue
+            if not isinstance(msg, dict) or not isinstance(msg.get("method"), str):
+                if isinstance(msg, dict) and "id" in msg:
+                    continue  # a response from the client; this server sends no requests
+                reply({"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Invalid Request"}})
+                continue
+            if "id" not in msg:
+                continue  # notification
+            params = msg.get("params")
+            try:
+                if params is not None and not isinstance(params, dict):
+                    raise _RpcError(-32602, "params must be an object")
+                result = handle_request(holder, msg["method"], params or {})
+                reply({"jsonrpc": "2.0", "id": msg["id"], "result": result})
+            except _RpcError as exc:
+                reply({"jsonrpc": "2.0", "id": msg["id"], "error": {"code": exc.code, "message": str(exc)}})
     finally:
-        watchdog.cancel()
         holder.conn.close()  # close whichever connection ended up live (may have been reopened)
 
 
@@ -946,7 +1034,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     # run_stdio owns closing conn (or its reopened replacement — see _ConnHolder).
-    asyncio.run(run_stdio(conn, db_path))
+    run_stdio(conn, db_path)
     return 0
 
 

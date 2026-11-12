@@ -3,7 +3,7 @@ name = "alexandria"
 version = "0.1.0"
 description = "A local research library for AI agents: books and papers as Markdown, indexed by citation key, searchable over MCP."
 requires-python = ">=3.11"
-dependencies = ["numpy>=2,<3", "mcp>=1.28,<2"]
+dependencies = ["numpy>=2,<3"]
 
 [project.optional-dependencies]
 # Embedded PDF metadata (alexandria_pdf_meta.py). Not needed for Markdown intake or search.
