@@ -21,6 +21,7 @@ cat > "$out/$(basename "${src%.*}").md" <<MD
 Author: Ada Lovelace
 Year: 1843
 Category: papers
+DOI: 10.5555/12345678
 MD
 PARSER
 chmod +x "$PARSER"
@@ -70,6 +71,7 @@ cat > "$REC_PARSED/work/work.md" <<MD
 Author: Ada Lovelace
 Year: 1843
 Category: papers
+DOI: 10.5555/12345678
 MD
 printf '{"chunk_id":"lovelace1843:0000","text":"Body"}\n' > "$REC_PARSED/work/work/chunks.jsonl"
 printf '{"embedding_ok":false,"embedding_count":0}\n' > "$REC_PARSED/work/work/run_meta.json"
@@ -115,6 +117,7 @@ cat > "$out/$stem.md" <<MD
 Author: Ada Lovelace
 Year: 1843
 Category: papers
+DOI: 10.5555/12345678
 MD
 fi
 PARSER

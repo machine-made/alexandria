@@ -105,6 +105,7 @@ cat > "$COL_PARSED/collision/collision.md" <<'MD'
 Author: Ada Lovelace
 Year: 1843
 Category: papers
+DOI: 10.5555/87654321
 MD
 cat > "$COL_PARSED/collision2/collision2.md" <<'MD'
 # Yet Another Small Paper
@@ -112,6 +113,7 @@ cat > "$COL_PARSED/collision2/collision2.md" <<'MD'
 Author: Ada Lovelace
 Year: 1843
 Category: papers
+DOI: 10.5555/87654322
 MD
 
 "$ROOT/pipeline/alexandria_audit_drop.py" --drop "$COL_DROP" --parsed "$COL_PARSED" --library "$COL_LIB" --out-dir "$COL_OUT" > "$TMP/collision_stdout.tsv"

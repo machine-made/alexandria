@@ -16,8 +16,8 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised only without 
         raise
     raise SystemExit(
         "ERROR: pypdf is required to extract embedded PDF metadata. "
-        "Run this script with ./.venv/bin/python, or install the approved dependency with:\n"
-        "  VIRTUAL_ENV=.venv suv pip install -r pipeline/requirements.txt"
+        "Run this script with ./.venv/bin/python, or install the optional dependency with:\n"
+        "  uv sync --extra pdf"
     ) from exc
 
 DOI_RE = re.compile(r"\b(10\.\d{4,9}/[-._;()/:A-Z0-9]+)", re.IGNORECASE)

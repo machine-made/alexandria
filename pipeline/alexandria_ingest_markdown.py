@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -28,7 +27,9 @@ from alexandria_metadata_common import (
     authors_from_author,
     base_key,
     first_heading,
-    global_filed_keys,    is_remote_or_special_target,
+    global_filed_keys,
+    informal_key,
+    is_remote_or_special_target,
     metadata_confidence,
     sha256_file,
     source_sha256_map,
@@ -36,24 +37,6 @@ from alexandria_metadata_common import (
     write_json,
 )
 from alexandria_validate_work import validate_work_md
-
-
-def informal_key(data: dict[str, object]) -> str:
-    """Generate a key for informal content from provided key or title."""
-    if "key" in data and data["key"]:
-        # If a key is explicitly provided, use it
-        candidate = str(data["key"]).strip()
-    elif "title" in data and data["title"]:
-        # Otherwise generate from title
-        candidate = str(data["title"]).strip()
-    else:
-        # Fallback
-        candidate = "unnamed"
-    
-    # Slugify: lowercase; keep [a-z0-9_], convert other separators to '_'.
-    slugified = re.sub(r"[^a-z0-9_]+", "_", candidate.lower()).strip("_")
-    slugified = re.sub(r"_+", "_", slugified)
-    return slugified or "unnamed"
 
 
 def image_targets_in_text(text: str) -> list[str]:

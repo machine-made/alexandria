@@ -9,7 +9,7 @@ tool error. A claim without a usable `bib_key` did not come from the library.
 
 | Piece | Value |
 |-------|--------|
-| Interpreter | `<library>/.venv/bin/python` (has `mcp` + `numpy`) |
+| Interpreter | `<library>/.venv/bin/python` (needs `numpy` only; the server speaks the MCP protocol itself) |
 | Server | `pipeline/alexandria_mcp.py` |
 | Index DB | `$ALEXANDRIA_INDEX_DB` or `<library>/.sc/alexandria-qim/index.db` |
 
@@ -212,5 +212,4 @@ bash pipeline/tests/test_alexandria_mcp.sh
 
 ## Deps
 
-- `pipeline/requirements-mcp.txt` — `mcp` only (agent edge)
-- `pipeline/requirements.txt` — includes `numpy` for the index module
+- `pyproject.toml` — `numpy` is the only runtime dependency (`uv sync`); `pypdf` is the optional `pdf` extra
