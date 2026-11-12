@@ -720,9 +720,10 @@ def rebuild_index(conn: sqlite3.Connection, library_root: Path) -> dict[str, Any
     set_meta(conn, "built_at", utc_now())
     set_meta(conn, "schema_version", SCHEMA_VERSION)
 
-    works = [harvest_work(library_root, md) for md in discover_work_markdown(library_root)]
-    for work in works:
-        upsert_harvested(conn, work, library_root)
+    # One work at a time: a harvested work holds its vectors as Python lists, so holding
+    # all 127 at once needs more than 9 GB for the 58,949 x 4096 library.
+    for md in discover_work_markdown(library_root):
+        upsert_harvested(conn, harvest_work(library_root, md), library_root)
     conn.commit()
     build_vectors_sidecar(conn)  # regenerate the mmap sidecar shipped alongside index.db
     return index_stats(conn)

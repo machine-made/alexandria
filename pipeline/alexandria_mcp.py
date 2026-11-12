@@ -972,7 +972,7 @@ def run_stdio(conn: sqlite3.Connection, db_path: Path) -> None:
     threading.Thread(target=_idle_watchdog, daemon=True).start()
 
     def reply(obj: dict[str, Any]) -> None:
-        out.write(json.dumps(obj) + "\n")
+        out.write(json.dumps(obj, separators=(",", ":")) + "\n")
         out.flush()
 
     try:
