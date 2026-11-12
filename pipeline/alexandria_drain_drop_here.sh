@@ -18,7 +18,8 @@ parse_one() {
     if [ -n "$PARSER_CMD" ]; then
         "$PARSER_CMD" "$src" "$out"
     else
-        printf 'y\n' | "$PIPELINE/secure_parse_c9.sh" --no-encrypt "$src" "$out"
+        log "ERROR: set ALEXANDRIA_PARSER_CMD to a command that parses SRC into OUT (called as: CMD SRC OUT)"
+        return 2
     fi
 }
 
