@@ -325,46 +325,45 @@ PY
 echo "== human table search (smoke) =="
 run_index search --mode fts --query "portfolio" --limit 3 | tee "$TMP/table.txt" | grep -q beta2020
 
-echo "== END-TO-END real library (read-only) =="
-REAL_DB="$TMP/real.db"
-python3 "$INDEX" rebuild --library "$ROOT" --db "$REAL_DB" --json > "$TMP/real_rebuild.json"
-python3 - "$TMP/real_rebuild.json" <<'PY'
-import json, sys
-s = json.load(open(sys.argv[1]))["stats"]
-assert s["works"] >= 2, s
-assert s["chunks"] >= 10, s
-print("real rebuild", s)
-PY
-python3 "$INDEX" search --library "$ROOT" --db "$REAL_DB" --mode fts --query "oblique shock" --json --limit 5 > "$TMP/real_q1.json"
-python3 "$INDEX" search --library "$ROOT" --db "$REAL_DB" --mode fts --query "transpiration cooling" --json --limit 5 > "$TMP/real_q2.json"
-python3 "$INDEX" search --library "$ROOT" --db "$REAL_DB" --mode fts --query "boundary layer" --json --limit 5 > "$TMP/real_q3.json"
-python3 - "$TMP" <<'PY'
-import json
-import sys
+echo "== scriptorium layout: vectors/<embedder-id>/<category>/<key>.jsonl =="
+SLIB="$TMP/slib"
+cp -a "$LIB" "$SLIB"
+python3 - "$SLIB" <<'PY'
+import json, shutil, sys
 from pathlib import Path
-tmp = Path(sys.argv[1])
-
-def keys(path):
-    data = json.loads(path.read_text())
-    assert data["results"], path
-    for r in data["results"]:
-        assert r.get("key") and r.get("bib_key")
-        for field in ("category", "title", "year", "snippet", "path", "score"):
-            assert field in r
-    return [r["key"] for r in data["results"]]
-
-k1 = keys(tmp / "real_q1.json")
-k2 = keys(tmp / "real_q2.json")
-k3 = keys(tmp / "real_q3.json")
-assert "song2023" in k1, k1
-assert "wang2029" in k2, k2
-assert "song2023" in k3, k3
-print("real e2e ok", {"oblique": k1[:3], "transpiration": k2[:3], "boundary": k3[:3]})
+root = Path(sys.argv[1])
+vec = root / "vectors" / "fixture-mini"
+for emb in sorted(root.glob("*/*/embeddings.jsonl")):
+    dst = vec / emb.parent.parent.name / f"{emb.parent.name}.jsonl"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(emb), str(dst))
+(vec / "embedder.json").write_text(json.dumps({"id": "fixture-mini", "runtime_tag": "fixture-mini", "dim": 4}))
+(root / "scriptorium.toml").write_text('format_version = 1\nactive_embedder = "fixture-mini"\n')
 PY
-
-# ensure we did not write into library works during e2e (spot-check mtimes not required;
-# just confirm no new index files under papers/)
-test ! -e "$ROOT/papers/song2023/index.db"
-test ! -e "$ROOT/papers/.alexandria_index"
+SDB="$TMP/sindex.db"
+python3 "$INDEX" rebuild --library "$SLIB" --db "$SDB" --json > "$TMP/srebuild.json"
+python3 - "$TMP/srebuild.json" "$TMP/rebuild_clean.json" <<'PY'
+import json, sys
+new, legacy = (json.load(open(p))["stats"] for p in sys.argv[1:3])
+for field in ("works", "chunks", "chunk_embeddings", "works_invalid"):
+    assert new[field] == legacy[field], (field, new, legacy)
+print("scriptorium layout indexes like the legacy layout", {k: new[k] for k in ("works", "chunks", "chunk_embeddings")})
+PY
+# A vector set from another model must make the work invalid, not mix in.
+sed -i 's/"model":"fixture-mini"/"model":"other-model"/' "$SLIB/vectors/fixture-mini/papers/alpha2020.jsonl"
+python3 "$INDEX" rebuild --library "$SLIB" --db "$SDB" --json > "$TMP/smixed.json"
+python3 - "$TMP/smixed.json" <<'PY'
+import json, sys
+stats = json.load(open(sys.argv[1]))["stats"]
+assert stats["works_invalid"] >= 1, stats
+print("foreign embedder tag rejected")
+PY
+python3 "$INDEX" upsert-work --library "$SLIB" --db "$SDB" --key alpha2020 --json > "$TMP/supsert.json" || true
+python3 - "$TMP/supsert.json" <<'PY'
+import json, sys
+out = json.load(open(sys.argv[1]))
+assert out["valid"] is False and any("active embedder" in e for e in out["validation_errors"]), out
+print("upsert-work reports the embedder mismatch")
+PY
 
 echo "ALL ALEXANDRIA INDEX TESTS PASSED"

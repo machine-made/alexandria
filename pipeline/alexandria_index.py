@@ -22,6 +22,8 @@ from typing import Any, Sequence
 
 import numpy as np
 
+from alexandria_library import active_embedder, embedding_row_errors
+from alexandria_library import embeddings_path as embeddings_file
 from alexandria_metadata_common import VALID_CATEGORIES, load_json, sha256_file
 from alexandria_scholar_bib import BibTeXParseError, parse_one_entry
 
@@ -421,9 +423,13 @@ def harvest_work(library_root: Path, md_path: Path) -> HarvestedWork:
     bib_path = md_path.with_suffix(".bib")
     metadata_path = work_dir / "metadata.json"
     chunks_path = work_dir / "chunks.jsonl"
-    embeddings_path = work_dir / "embeddings.jsonl"
-
     errors: list[str] = []
+    try:
+        _, embedder = active_embedder(library_root)
+    except ValueError as exc:
+        embedder = {}
+        errors.append(str(exc))
+    embeddings_path = embeddings_file(library_root, category, key, work_dir)
     metadata: dict[str, Any] = {}
     if category not in VALID_CATEGORIES:
         errors.append(f"{md_path}: category dir {category!r} not in VALID_CATEGORIES")
@@ -485,6 +491,7 @@ def harvest_work(library_root: Path, md_path: Path) -> HarvestedWork:
         embeddings = load_jsonl(embeddings_path)
     except ValueError as exc:
         errors.append(str(exc))
+    errors.extend(embedding_row_errors(embeddings, embedder, key))
 
     # Empty text chunks are rejected from the index body.
     cleaned_chunks: list[dict[str, Any]] = []

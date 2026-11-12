@@ -10,6 +10,7 @@ from typing import Any
 from alexandria_audit_bibtex import iter_bib_sidecars, root_bibliography_finding
 from alexandria_bibtex import bibtex_type
 from alexandria_key_registry import KeyRegistry
+from alexandria_library import embeddings_path
 from alexandria_metadata_common import (
     HTML_SRC_RE,
     MARKDOWN_IMAGE_RE,
@@ -249,7 +250,7 @@ def validate_work_md(md_path: Path) -> list[str]:
             else:
                 errors.append(msg)
     chunks = work_dir / "chunks.jsonl"
-    embeddings = work_dir / "embeddings.jsonl"
+    embeddings = embeddings_path(category_dir.parent, category_dir.name, key, work_dir)
     chunk_count = jsonl_count(chunks)
     embedding_count = jsonl_count(embeddings)
     if chunks.exists() and chunk_count == 0:
