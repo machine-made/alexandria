@@ -19,11 +19,12 @@ vectors) lives elsewhere and is read through a path you configure.
 ## Tests
 
 ```
-uv sync
-env -C . bash pipeline/tests/test_alexandria_mcp.sh
+bash pipeline/tests/run_all.sh
 ```
 
-Tests run from the repository root and use synthetic fixtures.
+Run from the repository root with uv installed. The runner installs locked dependencies
+and runs every shell test with synthetic fixtures. Optional LaTeX compile checks print
+a skip reason when biber or pdflatex is missing.
 
 ## Licence
 
