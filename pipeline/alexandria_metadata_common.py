@@ -3,6 +3,7 @@
 """Shared Alexandria metadata and file-identity helpers."""
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import os
@@ -1523,10 +1524,18 @@ def marker_image_targets(text: str) -> list[str]:
     return targets
 
 
+def read_text(path: Path, errors: str = "strict") -> str:
+    """Text of a file. A .gz file is decompressed, so a vector file too large for git can be stored as .jsonl.gz."""
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", encoding="utf-8", errors=errors) as handle:
+            return handle.read()
+    return path.read_text(encoding="utf-8", errors=errors)
+
+
 def jsonl_count(path: Path) -> int:
     if not path.is_file():
         return 0
-    return sum(1 for line in path.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip())
+    return sum(1 for line in read_text(path, errors="replace").splitlines() if line.strip())
 
 
 def filed_metadata_paths(library_root: Path) -> list[Path]:

@@ -46,11 +46,13 @@ def active_embedder(library_root: Path) -> tuple[str | None, dict[str, Any]]:
 
 
 def embeddings_path(library_root: Path, category: str, key: str, work_dir: Path) -> Path:
-    """Vector file of one work for the library's active embedder."""
+    """Vector file of one work for the library's active embedder: <key>.jsonl, or <key>.jsonl.gz when only that exists."""
     embedder_id, _ = active_embedder(library_root)
     if embedder_id is None:
         return work_dir / "embeddings.jsonl"
-    return library_root / "vectors" / embedder_id / category / f"{key}.jsonl"
+    plain = library_root / "vectors" / embedder_id / category / f"{key}.jsonl"
+    packed = plain.with_name(plain.name + ".gz")
+    return packed if not plain.is_file() and packed.is_file() else plain
 
 
 def embedding_row_errors(rows: list[dict[str, Any]], descriptor: dict[str, Any], label: str) -> list[str]:

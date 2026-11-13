@@ -25,7 +25,7 @@ import numpy as np
 
 from alexandria_library import active_embedder, default_library, embedding_row_errors
 from alexandria_library import embeddings_path as embeddings_file
-from alexandria_metadata_common import VALID_CATEGORIES, load_json, sha256_file
+from alexandria_metadata_common import VALID_CATEGORIES, load_json, read_text, sha256_file
 from alexandria_scholar_bib import BibTeXParseError, parse_one_entry
 
 SCHEMA_VERSION = "1"
@@ -386,7 +386,7 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     if not path.is_file():
         return []
     rows: list[dict[str, Any]] = []
-    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+    for line_no, line in enumerate(read_text(path).splitlines(), start=1):
         line = line.strip()
         if not line:
             continue

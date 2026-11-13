@@ -375,6 +375,22 @@ assert stats["works"] == 3 and stats["library_root"].endswith("/slib"), stats
 print("ALEXANDRIA_LIBRARY default ok")
 PY
 
+echo "== a vector file stored as .jsonl.gz is read like .jsonl =="
+ZLIB="$TMP/zlib"
+cp -a "$SLIB" "$ZLIB"
+python3 "$INDEX" rebuild --library "$SLIB" --db "$TMP/plain.db" --json > "$TMP/plain.json"
+gzip "$ZLIB/vectors/fixture-mini/papers/beta2020.jsonl"
+test ! -e "$ZLIB/vectors/fixture-mini/papers/beta2020.jsonl"
+python3 "$INDEX" rebuild --library "$ZLIB" --db "$TMP/packed.db" --json > "$TMP/packed.json"
+python3 - "$TMP/plain.json" "$TMP/packed.json" <<'PY'
+import json, sys
+plain, packed = (json.load(open(p))["stats"] for p in sys.argv[1:3])
+for field in ("works", "works_invalid", "chunks", "chunk_embeddings"):
+    assert plain[field] == packed[field], (field, plain, packed)
+assert packed["chunk_embeddings"] > 0, packed
+print(".jsonl.gz vectors index like .jsonl", {k: packed[k] for k in ("works", "chunks", "chunk_embeddings")})
+PY
+
 echo "== export-serving: strips vectors, keeps the sidecar stamp valid, sets the serving library root =="
 python3 "$INDEX" export-serving --library "$SLIB" --db "$SDB" --out "$TMP/serving.db" --library-root /srv/library --json > "$TMP/export.json"
 python3 - "$TMP/export.json" "$SDB" "$TMP/serving.db" <<'PY'

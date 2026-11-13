@@ -13,6 +13,7 @@ Alexandria reads a library from a directory given by `--library` or `$ALEXANDRIA
   vectors/<embedder-id>/
     embedder.json                  id, runtime_tag, dim, query_instruction, ...
     <category>/<key>.jsonl         one row per chunk: chunk_id, chunk_index, model, embedding_dim, embedding
+                                   (or <key>.jsonl.gz when the plain file is too large for git; read the same way)
 ```
 
 ## Vectors
