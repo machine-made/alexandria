@@ -13,3 +13,6 @@ pdf = ["pypdf>=6,<7"]
 
 [tool.uv]
 package = false
+# Security audit 2026-10-21: resolve only releases at least 7 days old. Kept in the file so CI
+# resolves the same way as the lock file (the lock was made with the same setting in the user config).
+exclude-newer = "7 days"
