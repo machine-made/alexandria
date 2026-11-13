@@ -13,6 +13,7 @@ tool error. A claim without a usable `bib_key` did not come from the library.
 | Server | `pipeline/alexandria_mcp.py` |
 | Library | `--library` or `$ALEXANDRIA_LIBRARY` (default: current directory) |
 | Index DB | `$ALEXANDRIA_INDEX_DB` or `<library>/.sc/alexandria-qim/index.db` |
+| Query cache | `<index>.query_cache.sqlite`, or `$ALEXANDRIA_QUERY_CACHE` (a path, or `off`). A repeated query skips the embedder. It stores only a hash of the query and the vector, at most 2000 entries. Delete the file to reset. |
 
 Build / refresh the index (library root):
 

@@ -26,6 +26,7 @@ import numpy as np
 from alexandria_library import active_embedder, default_library, embedding_row_errors
 from alexandria_library import embeddings_path as embeddings_file
 from alexandria_metadata_common import VALID_CATEGORIES, load_json, read_text, sha256_file
+import alexandria_query_cache as query_cache
 from alexandria_scholar_bib import BibTeXParseError, parse_one_entry
 
 SCHEMA_VERSION = "1"
@@ -1474,7 +1475,13 @@ def resolve_query_vector(
     model = get_meta(conn, "embedding_model") or DEFAULT_EMBED_MODEL
     # If multiple models stored comma-separated, take the first.
     model = model.split(",")[0].strip() or DEFAULT_EMBED_MODEL
-    return embed_query_ollama(format_query_for_model(query, model), model)
+    text = format_query_for_model(query, model)
+    cache = query_cache.cache_path(next((row[2] for row in conn.execute("PRAGMA database_list") if row[1] == "main"), ""))
+    vector = query_cache.get(cache, model, text)
+    if vector is None:
+        vector = embed_query_ollama(text, model)
+        query_cache.put(cache, model, text, vector)
+    return vector
 
 
 def search_ex(
