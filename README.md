@@ -1,3 +1,5 @@
+![alexandria banner](https://raw.githubusercontent.com/machine-made/alexandria/main/assets/readme-banner-v3.jpg)
+
 # Alexandria
 
 A local research library for AI agents. Books and papers become Markdown, are filed under a
