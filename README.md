@@ -1,6 +1,9 @@
-# Alexandria
+![alexandria banner](https://raw.githubusercontent.com/machine-made/alexandria/main/assets/readme-banner-v3.jpg)
 
-A local research library for AI agents. Books and papers become Markdown, are filed under a
+[![CI](https://github.com/machine-made/alexandria/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/machine-made/alexandria/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
+`alexandria` is a local research library for AI agents. Books and papers become Markdown, are filed under a
 citation key, and are searched over MCP. Every search hit carries a `bib_key`, so a claim can be
 cited or shown to have no source.
 
