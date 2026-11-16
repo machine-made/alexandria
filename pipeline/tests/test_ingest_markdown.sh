@@ -154,4 +154,17 @@ assert m['author'] == 'Winner Person', m['author']
 "
 grep -q "^@article{$KEY_BOTH," "$LIB/misc/$KEY_BOTH.bib"
 
+# --- astrophysics is an accepted category: files there and validates ---
+MD_ASTRO="$TMP/astro.md"
+cat > "$MD_ASTRO" <<'MD'
+# Reionization Simulation Note
+
+Body text about radiation transport in a cosmological box.
+MD
+"$INGEST" --md "$MD_ASTRO" --library "$LIB" --kind academic --year 2026 \
+  --authors 'Oliver Zed' --journal 'MNRAS' --doi '10.1093/mnras/test0001' --category astrophysics
+test -f "$LIB/astrophysics/zed2026.md"
+grep -q '"category": "astrophysics"' "$LIB/astrophysics/zed2026/metadata.json"
+"$ROOT/pipeline/alexandria_validate_work.py" --library "$LIB"
+
 echo "OK"
