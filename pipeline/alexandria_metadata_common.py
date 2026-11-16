@@ -15,7 +15,7 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any
 
-VALID_CATEGORIES = {"propulsion", "quant", "optimization", "statistics", "reference", "papers", "misc"}
+VALID_CATEGORIES = {"astrophysics", "propulsion", "quant", "optimization", "statistics", "reference", "papers", "misc"}
 UNKNOWN_AUTHOR = "unknown"
 NODATE_YEAR = "nodate"
 SOURCE_EXTENSIONS = ("pdf", "PDF", "epub", "EPUB")
