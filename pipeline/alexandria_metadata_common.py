@@ -394,7 +394,7 @@ def _is_single_person_name(text: str, *, strict: bool = False) -> bool:
         if not key:
             return False
         # Initials before function-word check so "A." is not treated as article "a".
-        if _is_name_initial(tok):
+        if _is_name_initial(tok) or re.fullmatch(r"(?:[^\W\d_]\.){2,3}", tok):
             has_initial = True
             nameish += 1
             continue
@@ -406,7 +406,7 @@ def _is_single_person_name(text: str, *, strict: bool = False) -> bool:
         bare = tok.strip(".")
         if tok[:1].islower():
             return False
-        if re.match(r"^[A-Z][A-Za-z\-']*$", bare):
+        if bare[:1].isupper() and re.fullmatch(r"[^\W\d_](?:[^\W\d_]|[-'])*", bare):
             nameish += 1
             continue
         return False

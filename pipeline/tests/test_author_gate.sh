@@ -47,6 +47,10 @@ FILE_CASES = [
     ("Eremeyev", "Theory of Elasticity", "9783031361504"),
     ("El-Sayed", "Fundamentals of Aircraft and Rocket Propulsion", "9781447167946"),
     ("van der Berg", "Particle Name Book", "9783031361505"),
+    # Accented letters and joined initials (Crossref spellings) — must FILE
+    ("Rüdiger Pakmor", "The MillenniumTNG Project", "9783031361506"),
+    ("Claude-André Faucher-Giguère", "A New Calculation of the Ionizing Background", "9783031361507"),
+    ("M.J. Berger", "Local adaptive mesh refinement for shock hydrodynamics", "9783031361508"),
 ]
 for author, title, isbn in FILE_CASES:
     md = {
